@@ -1,0 +1,5 @@
+.vercel
+.env*
+videos/raw/
+images/oeil/
+__pycache__/

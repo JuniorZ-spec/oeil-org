@@ -9,21 +9,6 @@ const clamp = v => Math.min(1, Math.max(0, v));
 const ease = t => 1 - Math.pow(1 - t, 3);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------- mobile nav ---------- */
-const menuBtn = $('.menu-btn');
-const nav = $('#nav');
-menuBtn.addEventListener('click', () => {
-  const open = menuBtn.getAttribute('aria-expanded') === 'true';
-  menuBtn.setAttribute('aria-expanded', String(!open));
-  nav.classList.toggle('open', !open);
-});
-nav.addEventListener('click', e => {
-  if (e.target.closest('a')) {
-    menuBtn.setAttribute('aria-expanded', 'false');
-    nav.classList.remove('open');
-  }
-});
-
 /* ---------- infinite loops (marquee, photo strip): duplicate content ---------- */
 $$('[data-loop]').forEach(t => {
   [...t.children].map(c => c.cloneNode(true)).forEach(c => { c.setAttribute('aria-hidden', 'true'); t.append(c); });
@@ -63,8 +48,35 @@ const io = new IntersectionObserver(entries => entries.forEach(en => {
 }), { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
 $$('[data-reveal], [data-split]:not([data-base]), [data-count]').forEach(el => io.observe(el));
 // hero title plays right after the intro curtain
+/* ---------- intro: leave as soon as the hero photo is ready, not after a fixed delay ---------- */
 const heroTitle = $('[data-split][data-base]');
-if (heroTitle) setTimeout(() => heroTitle.classList.add('in'), 900);
+if (heroTitle) heroTitle.style.setProperty('--base', '0s');
+const loader = $('.loader');
+const seenIntro = document.documentElement.classList.contains('seen');
+let introDone = false;
+function loadDeferredHero() {   // 2nd hero photo: only after the first paint, so it never competes with the LCP image
+  const phone = matchMedia('(max-width:700px)').matches;
+  $$('img[data-src]').forEach(img => {
+    const ss = (phone && img.dataset.srcsetM) || img.dataset.srcset;
+    if (ss) img.srcset = ss;
+    img.src = (phone && img.dataset.srcM) || img.dataset.src;
+  });
+}
+function endIntro() {
+  if (introDone) return;
+  introDone = true;
+  document.dispatchEvent(new Event('intro-end'));
+  if (loader) { loader.classList.add('done'); setTimeout(() => loader.remove(), 900); }
+  setTimeout(() => heroTitle && heroTitle.classList.add('in'), loader && !seenIntro ? 250 : 0);
+  loadDeferredHero();
+}
+if (!loader || seenIntro) endIntro();
+else {
+  const first = $('.slide-bg.first img');
+  const minWait = new Promise(r => setTimeout(r, 880));
+  const imgReady = first && !first.complete ? new Promise(r => { first.addEventListener('load', r, { once: true }); first.addEventListener('error', r, { once: true }); }) : Promise.resolve();
+  Promise.race([Promise.all([minWait, imgReady, document.fonts ? document.fonts.ready : 0]), new Promise(r => setTimeout(r, 3500))]).then(endIntro);
+}
 
 function countUp(el) {
   const target = +el.dataset.count;
@@ -77,58 +89,61 @@ function countUp(el) {
   })(t0);
 }
 
-/* ---------- hero: photos + texts follow the scroll ---------- */
+/* ---------- hero: two slides that change by themselves ---------- */
 const hero = $('.hero');
-const sticky = $('.hero-sticky');
-const layers = $$('.layer', hero);
+// on phones the 2nd photo (palmiers et bougies) is left out
+if (matchMedia('(max-width:700px)').matches) {
+  $$('.desk-only', hero).forEach(e => e.remove());
+  $$('.hero-tabs button', hero).forEach((b, i) => { b.dataset.go = i; $('b', b).textContent = '0' + (i + 1); });
+  const tot = $('.hero-top b.cnt'); if (tot && tot.nextSibling) tot.parentNode.lastChild.textContent = ' — 0' + $$('.hero-copy', hero).length;
+}
+const slidesBg = $$('.slide-bg', hero);
 const copies = $$('.hero-copy', hero);
 const tabs = $$('.hero-tabs button', hero);
 const cnt = $('.cnt', hero);
-const firstImg = $('.slide-bg.s1 img', hero);
 const header = $('.site-header');
 const hh = () => header.offsetHeight;
-const range = s => (s ? s.split(',').map(Number) : null);
+const SLIDE_MS = 4200;
+let cur = -1, heroTimer, heroVisible = true;
+hero.style.setProperty('--dur', SLIDE_MS + 'ms');
+if (reduced) hero.classList.add('static');
 
-function heroProgress() {
-  const total = hero.offsetHeight - sticky.offsetHeight;
-  return { total, p: clamp((hh() - hero.getBoundingClientRect().top) / total) };
+function showSlide(i) {
+  if (i === cur) return;
+  cur = i;
+  slidesBg.forEach((s, k) => s.classList.toggle('on', k === i));
+  copies.forEach((c, k) => c.classList.toggle('on', k === i));
+  tabs.forEach((t, k) => t.classList.toggle('on', k === i));
+  if (cnt) cnt.textContent = '0' + (i + 1);
 }
-
-function updateHero() {
-  const { p } = heroProgress();
-
-  layers.forEach(l => {
-    const t = ease(clamp((p - l.dataset.from) / (l.dataset.to - l.dataset.from)));
-    const inset = (1 - t) * 100;
-    l.style.clipPath = `inset(0 0 ${inset}% 0)`;
-    l.firstElementChild.style.transform = `scale(${1 + (1 - t) * 0.2})`;
-  });
-  firstImg.style.transform = `scale(${1 + p * 0.07})`;
-
-  copies.forEach(el => {
-    const inn = range(el.dataset.in), out = range(el.dataset.out);
-    const ti = inn ? ease(clamp((p - inn[0]) / (inn[1] - inn[0]))) : 1;
-    const to = out ? clamp((p - out[0]) / (out[1] - out[0])) : 0;
-    const vis = ti * (1 - to);
-    const enter = (1 - ti) * -70;
-    el.style.opacity = vis;
-    el.style.transform = `translateY(${enter - to * 30}px)`;
-    el.classList.toggle('on', vis > 0.5);
-  });
-
-  const bounds = [[0, .45], [.45, 1]];
-  const active = p < .45 ? 0 : 1;
-  tabs.forEach((b, i) => {
-    b.classList.toggle('on', i === active);
-    b.querySelector('i').style.setProperty('--f', clamp((p - bounds[i][0]) / (bounds[i][1] - bounds[i][0])));
-  });
-  cnt.textContent = '0' + (active + 1);
+function nextSlide(step = 1) {
+  const n = copies.length;
+  const target = (cur + step + n) % n;
+  const img = slidesBg[target].querySelector('img');
+  if (img && !img.complete) return setTimeout(() => nextSlide(step), 400);   // wait for the photo instead of showing a blank
+  showSlide(target);
 }
-tabs.forEach(b => b.addEventListener('click', () => {
-  const { total } = heroProgress();
-  const y = scrollY + hero.getBoundingClientRect().top - hh() + total * parseFloat(b.dataset.go);
-  scrollTo({ top: y + (b.dataset.go === '0' ? 0 : 1), behavior: 'smooth' });
-}));
+function schedule() {
+  clearTimeout(heroTimer);
+  if (reduced) return;
+  heroTimer = setTimeout(() => {
+    if (document.hidden || !heroVisible) schedule();   // nobody is looking: stay on this slide
+    else { nextSlide(1); schedule(); }
+  }, SLIDE_MS);
+}
+tabs.forEach((b, k) => b.addEventListener('click', () => { showSlide(k); schedule(); }));
+new IntersectionObserver(e => { heroVisible = e[0].isIntersecting; }, { threshold: 0.3 }).observe(hero);
+
+// swipe left / right on the hero
+let hx = 0, hy = 0;
+hero.addEventListener('touchstart', e => { hx = e.touches[0].clientX; hy = e.touches[0].clientY; }, { passive: true });
+hero.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - hx, dy = e.changedTouches[0].clientY - hy;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { nextSlide(dx < 0 ? 1 : -1); schedule(); }
+}, { passive: true });
+
+function beginHero() { showSlide(0); schedule(); }
+if (introDone) beginHero(); else document.addEventListener('intro-end', beginHero, { once: true });
 
 /* ---------- scroll loop: progress bar, header, parallax ---------- */
 const bar = $('.progress');
@@ -140,7 +155,6 @@ function onScroll() {
   const max = document.documentElement.scrollHeight - innerHeight;
   bar.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
   header.classList.toggle('stuck', scrollY > 10);
-  updateHero();
   if (reduced) return;
   parallax.forEach(m => {
     const r = m.getBoundingClientRect();
@@ -164,19 +178,6 @@ $$('.svc-card').forEach(c => c.addEventListener('click', () => {
   $$('.svc-card').forEach(o => o.classList.toggle('open', o === c));
 }));
 
-/* ---------- testimonials ---------- */
-const quotes = $$('[data-quotes] blockquote');
-const qdots = $$('.qdots button');
-let qi = 0, qTimer;
-function showQuote(i) {
-  qi = (i + quotes.length) % quotes.length;
-  quotes.forEach((q, n) => q.classList.toggle('on', n === qi));
-  qdots.forEach((d, n) => d.classList.toggle('on', n === qi));
-}
-function autoQuote() { clearInterval(qTimer); if (!reduced) qTimer = setInterval(() => showQuote(qi + 1), 6500); }
-qdots.forEach((d, n) => d.addEventListener('click', () => { showQuote(n); autoQuote(); }));
-autoQuote();
-
 /* ---------- pricing buttons preselect the plan ---------- */
 const form = $('#devis');
 $$('[data-plan]').forEach(a => a.addEventListener('click', () => {
@@ -189,19 +190,31 @@ form.addEventListener('submit', e => {
   e.preventDefault();
   const f = form.elements;
   if (!f.noms.value.trim()) { f.noms.focus(); return; }
+  const types = [...form.querySelectorAll('input[name=type]:checked')].map(i => i.value);
+  const data = {
+    noms: f.noms.value.trim(), types: types.join(', '), date: f.date.value, ville: f.ville.value,
+    invites: f.invites.value, budget: f.budget.value, source: f.source.value, message: f.message.value,
+  };
   const text = [
     'Bonjour Oeil Org,',
-    `Nous sommes : ${f.noms.value.trim()}`,
-    `Cérémonie : ${f.type.value}`,
-    f.date.value && `Date prévue : ${f.date.value}`,
-    f.ville.value && `Ville : ${f.ville.value}`,
-    `Budget indicatif : ${f.budget.value}`,
-    f.message.value && `Message : ${f.message.value}`,
+    `Nous sommes : ${data.noms}`,
+    types.length && `Cérémonie : ${data.types}`,
+    data.date && `Date prévue : ${data.date}`,
+    data.ville && `Ville : ${data.ville}`,
+    data.invites && `Invités : ${data.invites}`,
+    data.budget && `Budget indicatif : ${data.budget}`,
+    data.source && `Vous nous avez connus par : ${data.source}`,
+    data.message && `Message : ${data.message}`,
   ].filter(Boolean).join('\n');
-  const note = $('#form-note');
+  const thanks = $('#thanks');
+  const done = msg => {
+    if (msg) $('#thanks-msg').textContent = msg;
+    form.hidden = true; thanks.hidden = false;
+    thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
   const viaWhatsApp = () => {
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
-    note.textContent = 'Votre demande est prête dans WhatsApp, il ne reste qu\'à l\'envoyer.';
+    done('Votre demande est prête dans WhatsApp : il ne reste qu\'à appuyer sur envoyer.');
   };
   if (!FORM_ENDPOINT) return viaWhatsApp();
 
@@ -210,19 +223,37 @@ form.addEventListener('submit', e => {
   fetch(FORM_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ noms: f.noms.value, type: f.type.value, date: f.date.value, ville: f.ville.value, budget: f.budget.value, message: f.message.value }),
+    body: JSON.stringify(data),
   })
-    .then(r => { if (!r.ok) throw new Error(r.status); form.reset(); note.textContent = 'Merci ! Nous vous répondons sous 24 heures.'; })
+    .then(r => { if (!r.ok) throw new Error(r.status); form.reset(); done('Nous vous répondons sous 24 heures, du lundi au samedi.'); })
     .catch(viaWhatsApp)
     .finally(() => { btn.disabled = false; });
 });
 
 /* ---------- video reels: play only what is on screen; click opens a player ---------- */
+
+/* reels: the poster lives on the card itself, the video fades in only once it really plays
+   (Safari hides the poster as soon as play() is called, which left black cards) */
+/* duplicate the cards once so the row can loop without a visible jump */
+(() => {
+  const rc = $('.reels'); if (!rc) return;
+  [...rc.children].forEach(c => { const k = c.cloneNode(true); k.setAttribute('aria-hidden', 'true'); k.tabIndex = -1; rc.append(k); });
+})();
+$$('.reel').forEach(r => {
+  const v = $('video', r);
+  if (!v || !v.getAttribute('poster')) return;
+  r.style.backgroundImage = `url(${v.getAttribute('poster')})`;
+  v.removeAttribute('poster');
+  v.addEventListener('playing', () => v.classList.add('on'));
+});
 const reelsEl = $('.reels');
 const reelVideos = $$('video', reelsEl);
+const conn = navigator.connection || {};
+const slowNet = !!(conn.saveData || /(^|-)(2g|3g)$/.test(conn.effectiveType || ''));
+if (slowNet) { document.documentElement.classList.add('slow'); $$('.reel').forEach(r => r.classList.add('still')); }
 const vio = new IntersectionObserver(entries => entries.forEach(en => {
   const v = en.target;
-  if (en.isIntersecting && !reduced) {
+  if (en.isIntersecting && !reduced && !slowNet) {
     if (!v.src) v.src = v.dataset.src;
     v.play().catch(() => {});
   } else v.pause();
@@ -260,3 +291,51 @@ function applyFab() { fab.classList.toggle('hide', [...fabHide].some(el => !el.c
 phoneScreen.addEventListener('change', applyFab);
 $$('#contact, #localisation, .site-footer, .hero').forEach(el => fio.observe(el));
 
+
+/* after a reload, always start from the top (browsers restore the old position after load) */
+if (window.__top) {
+  const top = () => scrollTo(0, 0);
+  top();
+  addEventListener('load', () => { top(); setTimeout(top, 60); setTimeout(top, 400); });
+  addEventListener('pageshow', top);
+}
+
+
+
+
+
+/* formulaire replié : s'ouvre au clic (ou depuis un bouton de formule) */
+const fold = $('#fold'), foldBtn = $('#open-form'), foldCta = $('#fold-cta');
+function openForm(scroll = true) {
+  fold.classList.add('open'); foldBtn.setAttribute('aria-expanded', 'true'); foldCta.classList.add('gone');
+  if (scroll) setTimeout(() => fold.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+}
+foldBtn.addEventListener('click', () => openForm());
+$$('[data-plan]').forEach(a => a.addEventListener('click', () => openForm(false)));
+
+/* ---------- défilement continu, lent, sans arrêt (vidéos et avis) ---------- */
+function drift(box, pxPerSec) {
+  if (!box || reduced) return;
+  box.style.scrollSnapType = 'none';
+  let x = box.scrollLeft, last = 0, touching = false, resume = 0, visible = false;
+  new IntersectionObserver(e => { visible = e[0].isIntersecting; }, { threshold: 0.05 }).observe(box);
+  const hold = () => { touching = true; clearTimeout(resume); };
+  const free = () => { clearTimeout(resume); resume = setTimeout(() => { touching = false; x = box.scrollLeft; }, 1200); };
+  box.addEventListener('touchstart', hold, { passive: true });
+  box.addEventListener('touchend', free, { passive: true });
+  box.addEventListener('pointerdown', hold, { passive: true });
+  box.addEventListener('pointerup', free, { passive: true });
+  box.addEventListener('wheel', () => { hold(); free(); }, { passive: true });
+  (function tick(t) {
+    const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
+    if (visible && !touching && !document.hidden && !document.querySelector('dialog[open]')) {
+      const half = box.scrollWidth / 2;
+      x += pxPerSec * dt;
+      if (x >= half) x -= half;
+      box.scrollLeft = x;
+    } else x = box.scrollLeft;
+    requestAnimationFrame(tick);
+  })(0);
+}
+drift($('.reels'), 38);
+(() => { const rv = $('.rvs'); if (!rv) return; [...rv.children].forEach(c => { const k = c.cloneNode(true); k.setAttribute('aria-hidden', 'true'); rv.append(k); }); drift(rv, 34); })();

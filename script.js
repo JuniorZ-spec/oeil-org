@@ -125,7 +125,7 @@ addEventListener('resize', onScroll);
 onScroll();
 
 /* ---------- services: first card open, others expand on hover (CSS) ---------- */
-$$('.svc-card').forEach(c => c.addEventListener('click', () => {
+$$('.svc-card').forEach(c => c.addEventListener('click', () => { if (matchMedia('(max-width:1000px)').matches) return;
   $$('.svc-card').forEach(o => o.classList.toggle('open', o === c));
 }));
 

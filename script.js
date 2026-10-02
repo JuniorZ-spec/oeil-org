@@ -288,5 +288,5 @@ function drift(box, pxPerSec) {
     requestAnimationFrame(tick);
   })(0);
 }
-drift($('.reels'), 38);
+drift($('.reels'), 12);
 (() => { const rv = $('.rvs'); if (!rv) return; [...rv.children].forEach(c => { const k = c.cloneNode(true); k.setAttribute('aria-hidden', 'true'); rv.append(k); }); drift(rv, 34); })();

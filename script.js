@@ -200,7 +200,7 @@ $$('.reel').forEach(r => {
 const reelsEl = $('.reels');
 const reelVideos = $$('video', reelsEl);
 const conn = navigator.connection || {};
-const slowNet = !!(conn.saveData || /(^|-)(2g|3g)$/.test(conn.effectiveType || ''));
+const slowNet = !!(conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''));
 if (slowNet) { document.documentElement.classList.add('slow'); $$('.reel').forEach(r => r.classList.add('still')); }
 const vio = new IntersectionObserver(entries => entries.forEach(en => {
   const v = en.target;

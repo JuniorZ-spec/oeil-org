@@ -818,6 +818,59 @@ html:not(.js) .hero-copy.pos1{opacity:1;transform:none}
 .hero-copy.pos1{opacity:0}
 .hero-copy.pos1.on{opacity:1}
 
-/* ---- angles droits sur les visuels, photos et vidéos ---- */
-.media,.media img,.svc-card,.svc-card img,.reel,.reel video,.pf,.pf img,.pf button,.step-img,.step-img img,.map,.map iframe,
-.lightbox video,.pfbox>img,.strip figure,.carousel .media,.post .media,.collage .media,.collage .sm{border-radius:0!important}
+
+
+/* =====================================================================
+   finishing pass : typography, rhythm, details
+   ===================================================================== */
+html{text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{font-kerning:normal;font-feature-settings:"kern","liga","calt";hanging-punctuation:first}
+h1,h2,h3,.h1x,.h2{text-wrap:balance;font-optical-sizing:auto;font-variant-ligatures:common-ligatures discretionary-ligatures}
+p,li,figcaption,blockquote{text-wrap:pretty;hyphens:manual}
+h2,.h2{letter-spacing:-.012em;line-height:1.06}
+h3{letter-spacing:-.005em;font-weight:500}
+em{font-weight:400}
+.hero-copy h1 em,.hero-copy .h1x em{white-space:nowrap}
+.eyebrow{letter-spacing:.26em;font-weight:600;font-size:.68rem}
+.lead,.section p{font-weight:300}
+.lead{line-height:1.8}
+.sub{font-size:1.02rem}
+
+/* hero title : two balanced lines instead of three */
+.hero-copy.pos1{width:min(640px,100% - 32px)}
+.hero-copy.pos1 h1{font-size:clamp(2.9rem,6.2vw,5.6rem);line-height:1.02}
+@media (max-width:700px){
+  .hero-copy.pos1 h1{font-size:clamp(2.5rem,11vw,3rem)}
+  .hero-copy .eyebrow{letter-spacing:.2em;font-size:.62rem}
+  .hero-copy .eyebrow::before{width:18px}
+  /* folded service cards : readable title on top of the photo */
+  .svc.svc .svc-card:not(.open)::after{background:linear-gradient(90deg,rgba(30,10,6,.82),rgba(30,10,6,.45))}
+}
+
+/* rhythm : consistent space above and below headings, calmer sections */
+.head-row{margin-bottom:clamp(2rem,4vw,3.4rem)}
+.center>.sub,.center>p{margin-top:.6rem}
+.section>.wrap.center+.wrap{margin-top:0}
+@media (min-width:1001px){
+  .section{padding-block:8.5rem}
+  .section.tight{padding-block:7rem}
+  .quotes-sec{padding-block:7.5rem}
+  .cta{padding-block:8rem}
+  #localisation{padding-bottom:9rem}
+}
+.find-list p,.info{line-height:1.7}
+
+/* details */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+.pill:focus-visible{border-radius:999px}
+img{-webkit-user-drag:none;user-select:none}
+.link-tiny,.link-light,.find-list .lnk{transition:letter-spacing .35s var(--ease),border-color .3s,color .3s}
+.link-tiny:hover,.find-list .lnk:hover{letter-spacing:.22em;border-color:var(--green)}
+.info a{transition:border-color .3s,color .3s}
+.info a:hover{color:var(--green)}
+.plan li,.dots li{line-height:1.6}
+.plan strong{letter-spacing:-.015em}
+.stars{letter-spacing:.3em}
+.foot a:not(.foot-brand){transition:opacity .3s,transform .3s var(--ease)}
+.legal{letter-spacing:.04em}
+hr{border:0;border-top:1px solid var(--line)}

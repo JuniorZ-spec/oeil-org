@@ -941,3 +941,13 @@ hr{border:0;border-top:1px solid var(--line)}
   .svc.svc.svc .svc-card .svc-link::after{content:"";position:absolute;inset:0}
 }
 @media (max-width:1000px){.svc.svc.svc .svc-card .svc-link{position:static}}
+
+/* WhatsApp en vert */
+.fab{background:#25d366;box-shadow:0 10px 26px rgba(37,211,102,.45)}
+.fab svg{fill:#fff}
+.fab::before{border-color:#25d366}
+a.pill[href*="wa.me"]{--sweep:#1ebe5b;background-color:#25d366;border-color:#25d366;color:#fff}
+a.pill[href*="wa.me"] i{background:rgba(255,255,255,.22);color:#fff}
+a.pill.light[href*="wa.me"] i{background:rgba(255,255,255,.22);color:#fff}
+a.pill.outline[href*="wa.me"]{background-color:#25d366;color:#fff}
+a.pill.ghost[href*="wa.me"]:hover{background-color:#1ebe5b}

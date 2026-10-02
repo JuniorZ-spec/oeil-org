@@ -874,3 +874,36 @@ img{-webkit-user-drag:none;user-select:none}
 .foot a:not(.foot-brand){transition:opacity .3s,transform .3s var(--ease)}
 .legal{letter-spacing:.04em}
 hr{border:0;border-top:1px solid var(--line)}
+
+
+/* ---- services : 3 domaines, boutique visible ---- */
+.svc-link{display:inline-flex;align-items:center;gap:.5rem;margin-top:.9rem;color:#fff;font-size:.74rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid var(--gold-l);padding-bottom:.25rem;width:fit-content;position:relative;z-index:3;opacity:0;transition:opacity .5s .15s}
+.svc-link i{font-style:normal;transition:transform .35s var(--ease)}
+.svc-link:hover i{transform:translateX(4px)}
+.svc-card:hover .svc-link,.svc-card:focus-within .svc-link,.svc:not(:hover) .svc-card.open .svc-link{opacity:1}
+.svc:hover .svc-card.open:not(:hover) .svc-link{opacity:0}
+.svc-card:nth-child(2) img{object-position:62% 40%}
+.svc-card:nth-child(3) img{object-position:50% 60%}
+@media (max-width:1000px){
+  .svc.svc .svc-card .svc-link{display:none}
+  .svc.svc .svc-card.open .svc-link{display:inline-flex;opacity:1}
+}
+
+/* ---- page beauté & boutique ---- */
+.jump{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.8rem}
+.jump a{padding:.65rem 1.1rem;border:1px solid var(--line);border-radius:999px;font-size:.82rem;text-decoration:none;background:var(--ivory);transition:.3s}
+.jump a:hover{background:var(--green-d);border-color:var(--green-d);color:#fff}
+.bimg{padding:0;background:none;overflow:hidden;border-radius:var(--r)}
+.bimg img{width:100%;height:100%;min-height:260px;object-fit:cover;object-position:62% 40%}
+.bimg:hover{transform:none;box-shadow:none}
+.shop-intro{max-width:36em;color:var(--muted);margin-bottom:2.2rem}
+.g2{grid-template-columns:repeat(2,1fr)}
+.shopcard{position:relative;border-radius:var(--r);overflow:hidden;min-height:clamp(340px,44vw,520px);display:flex;color:#fff}
+.shopcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 1.4s var(--ease)}
+.shopcard:hover img{transform:scale(1.05)}
+.shopcard::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(30,10,6,.82),rgba(30,10,6,.05) 62%)}
+.sc-cap{position:relative;z-index:2;align-self:end;width:100%;padding:1.8rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.sc-cap h3{font-size:2.2rem}
+.shop-note{margin-top:2rem;color:var(--muted)}
+.shop-note a{color:var(--green);border-bottom:1px solid var(--gold);text-decoration:none}
+@media (max-width:700px){.g2{grid-template-columns:1fr}.sc-cap{padding:1.3rem}.sc-cap h3{font-size:1.9rem}}

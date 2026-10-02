@@ -907,3 +907,6 @@ hr{border:0;border-top:1px solid var(--line)}
 .shop-note{margin-top:2rem;color:var(--muted)}
 .shop-note a{color:var(--green);border-bottom:1px solid var(--gold);text-decoration:none}
 @media (max-width:700px){.g2{grid-template-columns:1fr}.sc-cap{padding:1.3rem}.sc-cap h3{font-size:1.9rem}}
+
+.svc-card:nth-child(1) img{object-position:50% 22%}
+@media (max-width:1000px){.svc.svc .svc-card:nth-child(1) img{object-position:50% 24%}}

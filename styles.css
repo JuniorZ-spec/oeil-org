@@ -817,3 +817,7 @@ html:not(.js) .hero-copy.pos1{opacity:1;transform:none}
 .slide-bg.dk.first img{animation:heroZoom 22s ease-out both}
 .hero-copy.pos1{opacity:0}
 .hero-copy.pos1.on{opacity:1}
+
+/* ---- angles droits sur les visuels, photos et vidéos ---- */
+.media,.media img,.svc-card,.svc-card img,.reel,.reel video,.pf,.pf img,.pf button,.step-img,.step-img img,.map,.map iframe,
+.lightbox video,.pfbox>img,.strip figure,.carousel .media,.post .media,.collage .media,.collage .sm{border-radius:0!important}

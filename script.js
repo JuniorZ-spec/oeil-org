@@ -89,60 +89,11 @@ function countUp(el) {
   })(t0);
 }
 
-/* ---------- hero: two slides that change by themselves ---------- */
+/* ---------- hero: one still photo ---------- */
 const hero = $('.hero');
-// on phones the 2nd photo (palmiers et bougies) is left out
-if (matchMedia('(max-width:700px)').matches) {
-  $$('.desk-only', hero).forEach(e => e.remove());
-  $$('.hero-tabs button', hero).forEach((b, i) => { b.dataset.go = i; $('b', b).textContent = '0' + (i + 1); });
-  const tot = $('.hero-top b.cnt'); if (tot && tot.nextSibling) tot.parentNode.lastChild.textContent = ' — 0' + $$('.hero-copy', hero).length;
-}
-const slidesBg = $$('.slide-bg', hero);
-const copies = $$('.hero-copy', hero);
-const tabs = $$('.hero-tabs button', hero);
-const cnt = $('.cnt', hero);
 const header = $('.site-header');
 const hh = () => header.offsetHeight;
-const SLIDE_MS = 4200;
-let cur = -1, heroTimer, heroVisible = true;
-hero.style.setProperty('--dur', SLIDE_MS + 'ms');
-if (reduced) hero.classList.add('static');
-
-function showSlide(i) {
-  if (i === cur) return;
-  cur = i;
-  slidesBg.forEach((s, k) => s.classList.toggle('on', k === i));
-  copies.forEach((c, k) => c.classList.toggle('on', k === i));
-  tabs.forEach((t, k) => t.classList.toggle('on', k === i));
-  if (cnt) cnt.textContent = '0' + (i + 1);
-}
-function nextSlide(step = 1) {
-  const n = copies.length;
-  const target = (cur + step + n) % n;
-  const img = slidesBg[target].querySelector('img');
-  if (img && !img.complete) return setTimeout(() => nextSlide(step), 400);   // wait for the photo instead of showing a blank
-  showSlide(target);
-}
-function schedule() {
-  clearTimeout(heroTimer);
-  if (reduced) return;
-  heroTimer = setTimeout(() => {
-    if (document.hidden || !heroVisible) schedule();   // nobody is looking: stay on this slide
-    else { nextSlide(1); schedule(); }
-  }, SLIDE_MS);
-}
-tabs.forEach((b, k) => b.addEventListener('click', () => { showSlide(k); schedule(); }));
-new IntersectionObserver(e => { heroVisible = e[0].isIntersecting; }, { threshold: 0.3 }).observe(hero);
-
-// swipe left / right on the hero
-let hx = 0, hy = 0;
-hero.addEventListener('touchstart', e => { hx = e.touches[0].clientX; hy = e.touches[0].clientY; }, { passive: true });
-hero.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - hx, dy = e.changedTouches[0].clientY - hy;
-  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { nextSlide(dx < 0 ? 1 : -1); schedule(); }
-}, { passive: true });
-
-function beginHero() { showSlide(0); schedule(); }
+function beginHero() { $('.hero-copy', hero).classList.add('on'); }
 if (introDone) beginHero(); else document.addEventListener('intro-end', beginHero, { once: true });
 
 /* ---------- scroll loop: progress bar, header, parallax ---------- */

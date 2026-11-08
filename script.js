@@ -93,7 +93,20 @@ function countUp(el) {
 const hero = $('.hero');
 const header = $('.site-header');
 const hh = () => header.offsetHeight;
-function beginHero() { $('.hero-copy', hero).classList.add('on'); }
+function beginHero() {
+  $('.hero-copy', hero).classList.add('on');
+  const slides = $$('.hero-bg .slide-bg', hero);
+  if (slides.length < 2 || reduced) return;
+  let i = 0;
+  slides[0].classList.add('on');
+  setInterval(() => {
+    if (document.hidden) return;
+    const next = (i + 1) % slides.length;
+    const img = $('img', slides[next]);
+    if (img && !img.complete) return;
+    slides[i].classList.remove('on'); slides[next].classList.add('on'); i = next;
+  }, 6000);
+}
 if (introDone) beginHero(); else document.addEventListener('intro-end', beginHero, { once: true });
 
 /* ---------- scroll loop: progress bar, header, parallax ---------- */
@@ -289,5 +302,5 @@ function drift(box, pxPerSec) {
     requestAnimationFrame(tick);
   })(0);
 }
-drift($('.reels'), 12);
+drift($('.reels'), 34);
 (() => { const rv = $('.rvs'); if (!rv) return; [...rv.children].forEach(c => { const k = c.cloneNode(true); k.setAttribute('aria-hidden', 'true'); rv.append(k); }); drift(rv, 34); })();

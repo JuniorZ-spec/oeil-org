@@ -113,4 +113,4 @@ function drift(box, pxPerSec) {
     requestAnimationFrame(tick);
   })(0);
 }
-drift($('.reels'), 12);
+drift($('.reels'), 34);

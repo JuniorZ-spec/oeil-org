@@ -974,3 +974,10 @@ a.pill.ghost[href*="wa.me"]:hover{background-color:#1ebe5b}
 .hero-copy .eyebrow,.reels-sec .eyebrow,.cta .eyebrow{color:var(--gold-l)}
 .badge{background:var(--gold);color:#14110f}
 .quotes-sec,.dark-ivory{background:var(--cream)}
+
+/* hero : deux images en fondu */
+.hero-bg .slide-bg{opacity:0;transition:opacity 1.6s ease}
+.hero-bg .slide-bg.on{opacity:1}
+.hero-bg .slide-bg.first:only-child{opacity:1}
+.slide-bg.fade::after{background:linear-gradient(90deg,rgba(20,17,14,.82),rgba(20,17,14,.42) 42%,transparent 70%),linear-gradient(0deg,rgba(20,17,14,.5),transparent 38%)}
+@media (max-width:700px){.slide-bg.fade::after{background:linear-gradient(0deg,rgba(20,17,14,.95) 0,rgba(20,17,14,.78) 30%,rgba(20,17,14,.15) 58%,transparent 76%)}}

@@ -1,4 +1,4 @@
-const WHATSAPP = '2290129261561';
+const WA = () => window.SITE_WA || '';
 // Colle ici ton lien Formspree (https://formspree.io/f/xxxxxxx) pour recevoir les demandes par e-mail.
 // Laissé vide : le formulaire ouvre WhatsApp avec le message pré-rempli.
 const FORM_ENDPOINT = '';
@@ -147,7 +147,7 @@ form.addEventListener('submit', e => {
     invites: f.invites.value, budget: f.budget.value, source: f.source.value, message: f.message.value,
   };
   const text = [
-    'Bonjour Oeil Org,',
+    'Bonjour Maison Ayoka,',
     `Nous sommes : ${data.noms}`,
     types.length && `Cérémonie : ${data.types}`,
     data.date && `Date prévue : ${data.date}`,
@@ -163,11 +163,12 @@ form.addEventListener('submit', e => {
     form.hidden = true; thanks.hidden = false;
     thanks.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
+  const notReady = () => { note.textContent = 'Le formulaire est en cours de configuration : merci de revenir bientôt.'; };
   const viaWhatsApp = () => {
-    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+    window.open(`https://wa.me/${WA()}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
     done('Votre demande est prête dans WhatsApp : il ne reste qu\'à appuyer sur envoyer.');
   };
-  if (!FORM_ENDPOINT) return viaWhatsApp();
+  if (!FORM_ENDPOINT) return WA() ? viaWhatsApp() : notReady();
 
   const btn = form.querySelector('button[type=submit]');
   btn.disabled = true;
